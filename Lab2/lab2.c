@@ -11,8 +11,9 @@ int main(int argc, char *argv[]) {
 		return errno;
 	}
 
+	char buff[100];https://github.com/jeremiahsimonsen/ECE477.git
 	while(1) {
-		// do stuff
+		buff = fgets()
 	}
 
 	fclose(fp);
