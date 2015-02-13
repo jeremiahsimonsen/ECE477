@@ -6,6 +6,7 @@ int main(int argc, char *argv[]) {
 	FILE *fp;
 	char buff[100];
 	char str[100];
+	char value[100]; 
 	while(1) {
 		fp = fopen(file_path,"r");
 		if (fp == NULL) {
@@ -13,7 +14,7 @@ int main(int argc, char *argv[]) {
 			return errno;
 		}
 		while(fgets(buff, 100, fp)!=NULL){ // scan until EoF
-			sscanf(buff, "%s", str); // extract the first word in the string
+			sscanf(buff, "%s %s", str); // extract the first word in the string
 			if(strcmp(str,"MemFree:") == 0){ // if the first word is MemFree , print the line
 				printf("%s\n",buff); // print the value of MemFree
 			}
