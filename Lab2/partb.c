@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 		if(strcmp(str,"MemTotal:") == 0){ // if the first word is MemTotal,
 			ltime = time(NULL);
 			max = atoi(val); 	  //get the max value of the ram
-			fprintf(fpout,"%s\n%s",asctime(localtime(&time)),buff);	  // print the value of MemTotal
+			fprintf(fpout,"%s\n%s",asctime(localtime(&ltime)),buff);	  // print the value of MemTotal
 		}
 		if(strcmp(str,"MemFree:") == 0){ // same thing here just with MemFree
 			ram = atoi(val);
