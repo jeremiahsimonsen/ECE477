@@ -19,22 +19,16 @@
 int main(int argc, char *argv[])
 {
 	int fd, serial;
-	char byte;
+	unsigned int byte;
 
-	if (ioperm(0x40,40,1) < 0) {
+	if (ioperm(CHANNEL2,8,1) || ioperm(CONTROL,8,1)< 0) {
 		perror("Permissions");
 		return(errno);
 	}
 
 	outb(0b10110100,CONTROL);		// Configure timer 0 channel 2
-	outb(0xA0,CHANNEL2);					// low byte
-	outb(0x0F,CHANNEL2);					// high byte
-
-	// outb(0b10000100,CONTROL);
-	// byte = inb(CHANNEL2) | inb(CHANNEL2)<<8;
-	// printf("%d\n", byte&0xFFFF);
-
-#if 1
+	outb(0xA0,CHANNEL2);		// low byte
+	outb(0x0F,CHANNEL2);		// high byte
 
 	/* Open serial port */
 	if ( (fd = open("/dev/ttyUSB0",O_RDWR) )< 0) {
@@ -45,14 +39,11 @@ int main(int argc, char *argv[])
 	ioctl(fd,TIOCMGET, &serial);		// Read the serial port
 	/* Toggle LED forever */
 	while(1) {
-		outb(0b10000000,CONTROL);		// latch channel 2
-		byte = inb(CHANNEL2) | inb(CHANNEL2)<<8;					// read channel 2 counter
-		// need to read twice
-		printf("%d\n", byte&0xFFFF);
-		if (byte & 0xFFFF >= 256) {
+		outb(0b10000000,CONTROL);	// latch channel 2
+		byte = inb(CHANNEL2) | inb(CHANNEL2)<<8;	// read channel 2 counter
+		if (byte & 0xFFFF >= 2000) {
 			serial |= TIOCM_DTR;
 			ioctl(fd,TIOCMSET, &serial);
-			// printf("here\n");
 		} else {
 			serial &= ~TIOCM_DTR;
 			ioctl(fd,TIOCMSET, &serial);
@@ -60,7 +51,6 @@ int main(int argc, char *argv[])
 	}
 	
 	close(fd);
-#endif
 
 	return 0;
 }
