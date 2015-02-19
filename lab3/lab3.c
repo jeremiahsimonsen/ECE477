@@ -17,12 +17,12 @@ int main(int argc, char *argv[])
 	}
 	ioctl(fd,TIOCMGET, &serial);
 	while(1) {
-		serial |= TIOCM_DTR;
-		ioctl(fd,TIOCMSET, &serial);
-		sleep(1);
-		serial &= ~TIOCM_DTR;
-		ioctl(fd,TIOCMSET, &serial);
-		sleep(1);
+		// serial |= TIOCM_DTR;
+		// ioctl(fd,TIOCMSET, &serial);
+		// sleep(1);
+		// serial &= ~TIOCM_DTR;
+		// ioctl(fd,TIOCMSET, &serial);
+		// sleep(1);
 	}
 	
 	close(fd);
