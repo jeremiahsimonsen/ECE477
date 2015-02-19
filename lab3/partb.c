@@ -35,7 +35,7 @@ void beep() {
 	old = new;
 	new &= ~3;
 	outb(new,0x61);
-	while(delay<20000) {delay++;}
+	sleep(1);
 	outb(old,0x61);
 }
 
