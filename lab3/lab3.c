@@ -10,8 +10,7 @@ int main(int argc, char *argv[])
 {
 	int fd, serial;
 
-	fd = open("/dev/ttyUSB0",O_RDWR);
-	if (fd < 0) {
+	if ( (fd = open("/dev/ttyUSB0",O_RDWR) )< 0) {
 		close(fd);
 		perror("TTY open");
 		return errno;
