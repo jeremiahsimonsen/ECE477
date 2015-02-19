@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
 		perror("Permissions");
 		return errno;
 	}
-	while(1) {
+	// while(1) {
 		beep();
-	}
+	// }
 
 	return 0;
 }
