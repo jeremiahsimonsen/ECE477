@@ -33,7 +33,7 @@ void beep() {
 	outb(0x04,0x42);	//MSB
 	new = inb(0x61);
 	old = new;
-	new &= ~3;
+	new |= 3;
 	outb(new,0x61);
 	sleep(1);
 	outb(old,0x61);
