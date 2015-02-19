@@ -26,7 +26,6 @@ void tone_512() {
 }
 
 void beep() {
-	int delay=0;
 	char new,old;
 	outb(0xb6,0x43);
 	outb(0x9A,0x42);	//LSB
@@ -39,6 +38,22 @@ void beep() {
 	outb(old,0x61);
 }
 
+int note(unsigned int frequency, unsigned int delay)
+{
+	char new,old;
+	if (frequency > 5000) return 1;		// can't generate high freq well
+	outb(0xb6,0x43);
+	unsigned int timerval = 0x120000L / frequency;
+	outb(timerval & 0xFF, 0x42);			// LSB
+	outb(timerval & 0xFF00,0x42);			// MSB
+	new = inb(0x61);
+	old = new;
+	new |= 3;
+	outb(new,0x61);
+	sleep(delay);
+	outb(old,0x61);
+}
+
 int main(int argc, char *argv[])
 {
 	if (ioperm(CHANNEL2,8,1) || ioperm(CONTROL,8,1) || ioperm(SPEAKER,8,1) < 0) {
@@ -46,8 +61,12 @@ int main(int argc, char *argv[])
 		return errno;
 	}
 	// while(1) {
-		beep();
+		// beep();
 	// }
+	int i;
+	for(i=0;i<5000;i+=100) {
+		note(i,1);
+	}
 
 	return 0;
 }
