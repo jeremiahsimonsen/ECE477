@@ -41,7 +41,7 @@ void beep() {
 
 int main(int argc, char *argv[])
 {
-	if (ioperms(CHANNEL2,8,1) || ioperms(CONTROL,8,1) || ioperms(SPEAKER,8,1) < 0) {
+	if (ioperm(CHANNEL2,8,1) || ioperm(CONTROL,8,1) || ioperm(SPEAKER,8,1) < 0) {
 		perror("Permissions");
 		return errno;
 	}
