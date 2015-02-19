@@ -7,43 +7,35 @@
 #include <errno.h>
 
 #include <unistd.h>
-#define extern static
+//#define extern static
 #include <sys/io.h>
-#undef extern
+//#undef extern
 
+#define CHANNEL0 0x40
+#define CHANNEL1 0x41
+#define CHANNEL2 0x42
 #define CONTROL 0x43
 
 int main(int argc, char *argv[])
 {
 	int fd, serial;
+	char byte;
 
-	if (ioperm(0x40,5,1) < 0) {
+	if (ioperm(0x40,40,1) < 0) {
 		perror("Permissions");
 		return(errno);
 	}
 
-	outb(0b10110100,0x43);
-	outb(0xA0,0x42);
-	outb(0x0F,0x42);
+	outb(0b10110100,CONTROL);		// Configure timer 0 channel 2
+	outb(0xA0,CHANNEL2);					// low byte
+	outb(0x0F,CHANNEL2);					// high byte
 
-#if 0
-	char byte = inb(0x43);
-	printf("First: %x\n", byte);
-	byte = 0b10110100;
-	outb(byte,0x43);
-	byte = inb(0x43);
-	printf("Second:%x\n",byte);
-#endif
-	char byte[4]={0};
-	byte[0] = inb(0x40);
-	byte[1] = inb(0x41);
-	byte[2] = inb(0x42);
-	byte[3] = inb(0x43);
-	int i;
-	for (i=0;i<4;i++) {
-		printf("0x4%d: %x\n",i,byte[i]);
-	}
-#if 0
+	// outb(0b10000100,CONTROL);
+	// byte = inb(CHANNEL2) | inb(CHANNEL2)<<8;
+	// printf("%d\n", byte&0xFFFF);
+
+#if 1
+
 	/* Open serial port */
 	if ( (fd = open("/dev/ttyUSB0",O_RDWR) )< 0) {
 		close(fd);
@@ -53,12 +45,18 @@ int main(int argc, char *argv[])
 	ioctl(fd,TIOCMGET, &serial);		// Read the serial port
 	/* Toggle LED forever */
 	while(1) {
-		serial |= TIOCM_DTR;
-		ioctl(fd,TIOCMSET, &serial);
-		sleep(1);
-		serial &= ~TIOCM_DTR;
-		ioctl(fd,TIOCMSET, &serial);
-		sleep(1);
+		outb(0b10000000,CONTROL);		// latch channel 2
+		byte = inb(CHANNEL2) | inb(CHANNEL2)<<8;					// read channel 2 counter
+		// need to read twice
+		printf("%d\n", byte&0xFFFF);
+		if (byte & 0xFFFF >= 256) {
+			serial |= TIOCM_DTR;
+			ioctl(fd,TIOCMSET, &serial);
+			// printf("here\n");
+		} else {
+			serial &= ~TIOCM_DTR;
+			ioctl(fd,TIOCMSET, &serial);
+		}
 	}
 	
 	close(fd);
