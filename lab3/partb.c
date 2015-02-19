@@ -13,6 +13,7 @@
 #define CHANNEL1 0x41
 #define CHANNEL2 0x42
 #define CONTROL 0x43
+#define SPEAKER 0x61
 
 void tone_512() {
 	char byte;
@@ -40,6 +41,10 @@ void beep() {
 
 int main(int argc, char *argv[])
 {
+	if (ioperms(CHANNEL2,8,1) || ioperms(CONTROL,8,1) || ioperms(SPEAKER,8,1) < 0) {
+		perror("Permissions");
+		return errno;
+	}
 	while(1) {
 		beep();
 	}
