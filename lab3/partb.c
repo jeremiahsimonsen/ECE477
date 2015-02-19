@@ -26,7 +26,7 @@ void tone_512() {
 }
 
 void beep() {
-	int delay;
+	int delay=0;
 	char new,old;
 	outb(0xb6,0x43);
 	outb(0x9A,0x42);	//LSB
@@ -35,7 +35,7 @@ void beep() {
 	old = new;
 	new |= 3;
 	outb(new,0x61);
-	for(delay=0;delay<20000;delay++){}
+	while(delay<20000) {delay++;}
 	outb(old,0x61);
 }
 
