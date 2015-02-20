@@ -61,12 +61,12 @@ int main(int argc, char *argv[])
 		return errno;
 	}
 	// while(1) {
-		// beep();
+		beep();
 	// }
-	int i;
-	for(i=0;i<5000;i+=100) {
-		note(i,1);
-	}
+	// int i;
+	// for(i=0;i<5000;i+=100) {
+	// 	note(i,1);
+	// }
 
 	return 0;
 }
