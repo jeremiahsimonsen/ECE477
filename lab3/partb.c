@@ -47,7 +47,7 @@ int note(unsigned int frequency, unsigned int delay)
 	printf("%x\n",timerval&0xFF);
 	printf("%x\n", timerval&0xFF00);
 	outb(timerval & 0xFF, 0x42);			// LSB
-	outb(timerval & 0xFF00,0x42);			// MSB
+	outb((timerval & 0xFF00)>>8,0x42);			// MSB
 	new = inb(0x61);
 	old = new;
 	new |= 3;
