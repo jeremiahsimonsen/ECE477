@@ -44,7 +44,8 @@ int note(unsigned int frequency, unsigned int delay)
 	// if (frequency > 5000) return 1;		// can't generate high freq well
 	outb(0xb6,0x43);
 	unsigned int timerval = 0x120000L / frequency;
-	printf("%x\n",timerval);
+	printf("%x\n",timerval&0xFF);
+	printf("%x\n", timerval&0xFF00);
 	outb(timerval & 0xFF, 0x42);			// LSB
 	outb(timerval & 0xFF00,0x42);			// MSB
 	new = inb(0x61);
