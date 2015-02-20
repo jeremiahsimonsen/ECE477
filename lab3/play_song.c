@@ -27,7 +27,7 @@
 // Error checking macro
 #define CHECK(x, y) do { \
 	int retval = (x); \
-	if (retval != 0) { \
+	if (retval < 0) { \
 		fprintf(stderr, "Runtime error: (%s) returned %d:%s at %s:%d\n", #x, retval, strerror(errno), __FILE__, __LINE__); \
 	y; \
 	} \
