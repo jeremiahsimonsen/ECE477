@@ -44,8 +44,6 @@ int note(unsigned int frequency, unsigned int delay)
 	// if (frequency > 5000) return 1;		// can't generate high freq well
 	outb(0xb6,0x43);
 	unsigned int timerval = 0x120000L / frequency;
-	printf("%x\n",timerval&0xFF);
-	printf("%x\n", timerval&0xFF00);
 	outb(timerval & 0xFF, 0x42);			// LSB
 	outb((timerval & 0xFF00)>>8,0x42);			// MSB
 	new = inb(0x61);
@@ -62,9 +60,7 @@ int main(int argc, char *argv[])
 		perror("Permissions");
 		return errno;
 	}
-	// while(1) {
-		// beep();
-	// }
+	
 	int i;
 	for(i=100;i<5000;i+=100) {
 		note(i,1);
