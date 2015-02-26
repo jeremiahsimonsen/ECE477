@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/io.h>
 
+// Error checking macros
 #define CHECK(x, y) do { \
 	int retval = (x); \
 	if (retval < 0) { \
@@ -28,7 +29,7 @@ int main(int argc, char * argv[])
 	char *filename = "default.csv";
 	char *output = stdout;
 	int serialfd, filenamefd, outputfd;
-	struct termios *my_termios;
+	struct termios my_termios;
 	int i;
 	for(i=2;i<argc;i+=2){	//need to grab the flag as well as the string
 		if (strcmp(argv[i-1],"-p")==0){
@@ -46,10 +47,10 @@ int main(int argc, char * argv[])
 //	CHECK(outputfd = open(output, O_RDWR), return errno);  //open all the files and check for errors
 	
 
-	CHECK(cfsetspeed(&termios_p, B9600), return errno);
-	CHECK(tcsetattr(serialfd, ICANON, &mytermios), return errno);
+	CHECK(cfsetspeed(&my_termios, B9600), return errno);
+	CHECK(tcsetattr(serialfd, ICANON, &my_termios), return errno);
 
-	int staus;
+	int status;
 	int pid;
 	pid = fork();
 
