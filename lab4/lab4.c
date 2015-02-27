@@ -12,7 +12,7 @@
 #include <sys/io.h>
 #include <stdlib.h>
 
-// Error checking macros
+/* Error checking macro */
 #define CHECK(x, y) do { \
 	int retval = (x); \
 	if (retval < 0) { \
@@ -23,36 +23,24 @@
 
 #define BUFFSIZE 512
 
-// function for parsing command line args
-// void parseArgs(int argc, char *argv[], char **serialPort, char **inputFile,
-// 	char **outputFile) {
-// 	int i;
-// 	for(i=2;i<argc;i+=2){	//need to grab the flag as well as the string
-// 		if (strcmp(argv[i-1],"-p")==0){
-// 			*serialPort = argv[i];
-// 		} else if (strcmp(argv[i-1],"-f")==0){
-// 			*inputFile = argv[i];
-// 		} else if (strcmp(argv[i-1],"-o")==0){
-// 			*outputFile = argv[i];
-// 		} else {
-// 			fprintf(stderr, "Unknown argument: %s\n", argv[i]);
-// 		}
-// 	}
-// }
-
-void parseArgs(int argc, char* argv[], char** port, char** inputName, char** outputName)
+/* Function for parsing command line args */
+void getArgs(int argc, char* argv[], char** serialPort, char** infName, char** outfName)
 {
-	// Parse the command line arguments
-	int i = 0;
-	for (i = 0; i < argc; i++) {
+	int i;
+	/* For all of the command line arguments except argv[0] (program name) */
+	for (i = 1; i < argc; i++) {
 
-		// Compare the input arguments against our known flags and ignores other flags
+		/* Check for flags and grab parameters 
+		 * -p flag denotes the serial port to be opened
+		 * -f flag denotes the input file
+		 * -o flag denotes the output file 
+		 * If an unexpected argument is passed, exit with usage message*/
 		if ((strcmp("-p", argv[i]) == 0) && (argc > ++i)) {
-			*port = argv[i];
+			*serialPort = argv[i];
 		} else if ((strcmp("-f", argv[i]) == 0) && (argc > ++i)) {
-			*inputName = argv[i];
+			*infName = argv[i];
 		} else if ((strcmp("-o", argv[i]) == 0) && (argc > ++i)) {
-			*outputName = argv[i];
+			*outfName = argv[i];
 		} else if (argv[i][0] == '-') {
 			fprintf(stderr, "Unknown argument: %s\n", argv[i]);
 			fprintf(stderr, "usage: %s [-p port_name] [-f input_file] [-o output_file]\n", argv[0]);
@@ -61,7 +49,7 @@ void parseArgs(int argc, char* argv[], char** port, char** inputName, char** out
 	}
 }
 
-// function for setting up the serial port
+/* Function for setting up the serial port */
 int setupPort(char *portFileName) {
 	int serialfd;
 	struct termios serial;
@@ -72,10 +60,15 @@ int setupPort(char *portFileName) {
 	/* Fetch current serial port attributes to make setup easier */
 	CHECK(tcgetattr(serialfd, &serial), return errno);
 
-	/* Adjust serial port attributes */
+	/* Adjust serial port attributes to:
+	 * canonical processing, no echo, no parity 9600 baud, 2 stop bits
+	 * no handshake, no special character translation or delays */
+	serial.c_iflag = IGNPAR;
+	serial.c_iflag &= ~IGNBRK;
 	serial.c_oflag = 0;
 	serial.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL;
-	serial.c_lflag = 0;
+	serial.c_lflag = ICANON;
+	serial.c_lflag &= ~ECHO;
 
 	/* Set input/output baud rate */
 	CHECK(cfsetispeed(&serial, B9600), return errno);
@@ -116,7 +109,7 @@ int child(int serialfd, char *outputFile) {
 	int n1, n2, n3, n4, n5 = 0;
 	int retVal;
 
-	if (outputFile) {
+	if (outputFile != NULL) {
 		output = fopen(outputFile, "w");
 		if (output == NULL) {
 			perror("Error child opening output file");
@@ -130,7 +123,7 @@ int child(int serialfd, char *outputFile) {
 	}
 
 	while (1) {
-		//todo actual output stuff
+		fprintf(stdout, "here\n");
 		retVal = fscanf(serialIN, "%d,%d,%d,%d,%d", &n1, &n2, &n3, &n4, &n5);
 		if (retVal == EOF) {
 			return errno;
@@ -159,14 +152,14 @@ int child(int serialfd, char *outputFile) {
 }
 
 int main(int argc, char *argv[]) {
-	static char defaultSerial[] = "/dev/ttyUSB0";
-	static char defaultInputf[] = "./default.csv";
+	static char *defaultSerial = "/dev/ttyUSB0";
+	static char *defaultInputf = "./default.csv";
 	char *portFile, *inputFile, *outputFile;
 	int serialfd;
 	pid_t pid;
 
-	//todo parseArgs shits
-	parseArgs(argc, argv, &portFile, &inputFile, &outputFile);
+	//todo getArgs shits
+	getArgs(argc, argv, &portFile, &inputFile, &outputFile);
 
 	if (portFile == NULL) {
 		portFile = defaultSerial;
@@ -176,7 +169,7 @@ int main(int argc, char *argv[]) {
 		inputFile = defaultInputf;
 	}
 
-	serialfd = setupPort(defaultSerial);
+	CHECK(serialfd = setupPort(portFile),return errno);
 
 	//todo split with fork
 	CHECK(pid = fork(), CHECK(close(serialfd),return errno));
@@ -184,7 +177,7 @@ int main(int argc, char *argv[]) {
 	if (pid == 0) {
 		return child(serialfd, outputFile);
 	} else if (pid > 0) {
-		return parent(pid, serialfd, defaultInputf);
+		return parent(pid, serialfd, inputFile);
 	}
 
 	return 0;
