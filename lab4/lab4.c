@@ -1,13 +1,16 @@
+
 #include <stdio.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/io.h>
+#include <stdlib.h>
 
 // Error checking macros
 #define CHECK(x, y) do { \
@@ -21,18 +24,39 @@
 #define BUFFSIZE 512
 
 // function for parsing command line args
-void parseArgs(int argc, char *argv[], char **serialPort, char **inputFile,
-	char **outputFile) {
-	int i;
-	for(i=2;i<argc;i+=2){	//need to grab the flag as well as the string
-		if (strcmp(argv[i-1],"-p")==0){
-			*serialPort = argv[i];
-		} else if (strcmp(argv[i-1],"-f")==0){
-			*inputFile = argv[i];
-		} else if (strcmp(argv[i-1],"-o")==0){
-			*outputFile = argv[i];
-		} else {
+// void parseArgs(int argc, char *argv[], char **serialPort, char **inputFile,
+// 	char **outputFile) {
+// 	int i;
+// 	for(i=2;i<argc;i+=2){	//need to grab the flag as well as the string
+// 		if (strcmp(argv[i-1],"-p")==0){
+// 			*serialPort = argv[i];
+// 		} else if (strcmp(argv[i-1],"-f")==0){
+// 			*inputFile = argv[i];
+// 		} else if (strcmp(argv[i-1],"-o")==0){
+// 			*outputFile = argv[i];
+// 		} else {
+// 			fprintf(stderr, "Unknown argument: %s\n", argv[i]);
+// 		}
+// 	}
+// }
+
+void parseArgs(int argc, char* argv[], char** port, char** inputName, char** outputName)
+{
+	// Parse the command line arguments
+	int i = 0;
+	for (i = 0; i < argc; i++) {
+
+		// Compare the input arguments against our known flags and ignores other flags
+		if ((strcmp("-p", argv[i]) == 0) && (argc > ++i)) {
+			*port = argv[i];
+		} else if ((strcmp("-f", argv[i]) == 0) && (argc > ++i)) {
+			*inputName = argv[i];
+		} else if ((strcmp("-o", argv[i]) == 0) && (argc > ++i)) {
+			*outputName = argv[i];
+		} else if (argv[i][0] == '-') {
 			fprintf(stderr, "Unknown argument: %s\n", argv[i]);
+			fprintf(stderr, "usage: %s [-p port_name] [-f input_file] [-o output_file]\n", argv[0]);
+			exit(EXIT_FAILURE);
 		}
 	}
 }
@@ -93,10 +117,14 @@ int child(int serialfd, char *outputFile) {
 	int retVal;
 
 	if (outputFile) {
-		CHECK(output = fopen(outputFile, "w"), return errno);
+		output = fopen(outputFile, "w");
+		if (output == NULL) {
+			perror("Error child opening output file");
+			return errno;
+		}
 	}
 
-	if (serialIN = fdopen(serialfd,"r") == NULL) {
+	if ((serialIN = fdopen(serialfd,"r")) == NULL) {
 		perror("Child had problem opening serial");
 		return errno;
 	}
