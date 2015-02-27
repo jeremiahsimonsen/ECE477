@@ -46,12 +46,13 @@ int main(int argc, char * argv[])
 	CHECK(filenamefd = open(filename, O_RDWR | O_CREAT,S_IRUSR | S_IWUSR), return errno); //create the file if it doesn't exist
 //	CHECK(outputfd = open(output, O_RDWR), return errno);  //open all the files and check for errors
 
-	CHECK(tcgetattr(0, &my_termios), return errno); //initalize and setup
+	CHECK(tcgetattr(serialfd, &my_termios), return errno); //initalize and setup
 	my_termios.c_oflag = 0;
-	my_termios.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL | ~ICANON | ~ECHO | ~PARENB;
+	my_termios.c_cflag = CS8 | CSTOPB | CREAD | CLOCAL;
 	my_termios.c_lflag = 0;
 
-	CHECK(cfsetspeed(&my_termios, B9600), return errno);//set both input and output speed
+	CHECK(cfsetispeed(&my_termios, B9600), return errno);
+	CHECK(cfsetospeed(&my_termios, B9600), return errno);
 	CHECK(tcsetattr(serialfd, TCSANOW, &my_termios), return errno);	//set all settings
 
 	int status;
@@ -59,7 +60,7 @@ int main(int argc, char * argv[])
 	pid = fork();
 	char ifbuf[512];
 	if (pid > 0){	//parrent process
-		while(){
+		while(1){
 			CHECK(read(filenamefd, ifbuf, 512), return errno); //read from input
 			CHECK(write(serialfd, ifbuf, 512), return errno);
 			wait(&status); //wait for child process to end	
