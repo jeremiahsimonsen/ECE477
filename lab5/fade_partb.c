@@ -11,14 +11,14 @@ uint16_t read_adc(uint8_t channel);
 /* globals used by interrupt service routine */
 int brightness=100;    // brightness that will be set by ADC
 
-/************************************************************************************************************************/
+/*****************************************************************************/
 /* This program demonstrates PWM on an AVR.  It controls the brightness of an LED driven my the OC1A output.            */
 /* The function init_pwm performs the necessary initialization  for the PWM.  After this, timer1 interrupts are enabled */
 /* and everything else happens in the timer1 overflow interrupt.                                                        */
 /* The program causes the apparent brightness of an LED to smoothly increase from fully off to fully on and back to     */
 /* fully off.  There are 100 brightness levels in addition to fully off.  The PWM period is adjusted as the square of   */
 /* the brightness to have the RMS current change rather than the average current.                                       */
-/************************************************************************************************************************/
+/*****************************************************************************/
 
 int main(void) 
 {

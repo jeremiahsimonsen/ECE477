@@ -10,14 +10,14 @@ int compare_val=0;    //value for PWM
 char int_counter=0;   //counts interruts
 char increment=1;     //set to +1 when getting brighter, -1 when getting dimmer
 
-/************************************************************************************************************************/
+/*****************************************************************************/
 /* This program demonstrates PWM on an AVR.  It controls the brightness of an LED driven my the OC1A output.            */
 /* The function init_pwm performs the necessary initialization  for the PWM.  After this, timer1 interrupts are enabled */
 /* and everything else happens in the timer1 overflow interrupt.                                                        */
 /* The program causes the apparent brightness of an LED to smoothly increase from fully off to fully on and back to     */
 /* fully off.  There are 100 brightness levels in addition to fully off.  The PWM period is adjusted as the square of   */
 /* the brightness to have the RMS current change rather than the average current.                                       */
-/************************************************************************************************************************/
+/*****************************************************************************/
 
 int main(void) 
 {
@@ -54,12 +54,12 @@ void init_pwm(void)
 
 
 
-/*************************************************************************************************************************/
+/*****************************************************************************/
 /* Timer1 overflow interrupt service routine                                                                             */
 /* every 5 overflows this changes the PWM compare value, and therfore the brightness of the LED.  step_val contains      */
 /* the percent of full scale from 0 to 100.  compare_val contains the 16 bit value between 0 and 10000 used for the      */
 /* PWM compare.                                                                                                          */
-/*************************************************************************************************************************/
+/*****************************************************************************/
 ISR(TIMER1_OVF_vect)
 {
  int_counter++;          //counts interrupts
