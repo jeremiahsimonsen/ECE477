@@ -2,7 +2,8 @@ CC=avr-gcc
 CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atmega88
 OBJ2HEX=avr-objcopy
 #UISP=/usr/local/bin/uisp
-TARGET=fade
+# TARGET=fade
+TARGET=fade_partb
 #ADFLAGS=-p m8 -c FT232 -P /dev/tty.usbserial-A8003POq 
 ADFLAGS=-p m88 -c FT232 -P /dev/ttyUSB0 
 
@@ -13,7 +14,7 @@ ADFLAGS=-p m88 -c FT232 -P /dev/ttyUSB0
 prog: $(TARGET).hex $(TARGET).eeprom  
 #this programs the chip, depends on Target.hex and Target.eeprom
 	avrdude $(ADFLAGS) -V -U flash:w:$(TARGET).hex:i
-#	avrdude $(ADFLAGS) -U eeprom:w:$(TARGET).eeprom:i
+	# avrdude $(ADFLAGS) -U eeprom:w:$(TARGET).eeprom:i
 
 %.obj: %.o   
 # make .obj (any obj) if corresponding .o is newer
