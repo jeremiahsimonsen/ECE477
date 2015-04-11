@@ -3,7 +3,7 @@ CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atmega88
 OBJ2HEX=avr-objcopy
 #UISP=/usr/local/bin/uisp
 # TARGET=fade
-TARGET=fade_partb
+TARGET=fade
 #ADFLAGS=-p m8 -c FT232 -P /dev/tty.usbserial-A8003POq 
 ADFLAGS=-p m88 -c FT232 -P /dev/ttyUSB0 
 

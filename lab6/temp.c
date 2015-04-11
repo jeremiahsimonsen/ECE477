@@ -1,5 +1,4 @@
 #include <avr/io.h>
-//#include <util/setbaud.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
 #define F_CPU 1843200// Clock Speed
@@ -14,32 +13,45 @@ void main( void )
 }
 
 
-
-USART_Init( unsigned int ubrr) //got this from the ATMEGA data sheet page 135
+void USART_Init( unsigned int ubrr) //got this from the ATMEGA data sheet page 176
 {
 /* Set baud rate */
-UBRR0H = (unsigned char)(ubrr>>8);
-UBRR0L = (unsigned char)ubrr;
+	UBRR0H = (unsigned char)(ubrr>>8);
+	UBRR0L = (unsigned char)ubrr;
 /* Enable receiver and transmitter */
-UCSR0B = (1<<4)|(1<<3); //4 = RXEN 3 = TXEN
+	UCSR0B = (1<<RXEN0)|(1<<TXEN0);
 /* Set frame format: 8data, 2stop bit */
-UCSR0C = (1<<7)|(1<<3)|(3<<1);  //(1<<URSEL)|(1<<USBS)|(3<<UCSZ0);
+	UCSR0C = (1<<USBS0)|(3<<UCSZ00);  //(1<<URSEL)|(1<<USBS)|(3<<UCSZ0);
 }
 
 void USART_Transmit( unsigned char data )  //may or may not need this
 {
 /* Wait for empty transmit buffer */
-while ( !( UCSR0A & (1<<UDRE0)) )
-;
+	while ( !( UCSR0A & (1<<UDRE0)) );
 /* Put data into buffer, sends the data */
-UDR0 = data;
+	UDR0 = data;
 }
 
 unsigned char USART_Receive( void )  //may or may not need this
 {
 /* Wait for data to be received */
-while ( !(UCSR0A & (1<<RXC0)) )
+	while ( !(UCSR0A & (1<<RXC0)) )
 ;
 /* Get and return received data from buffer */
-return UDR0;
+	return UDR0;
+}
+
+void TEMP_Init( void )
+{
+	ADMUX = (1<<REFS1)|(1<<REFS0)|(1<<MUX3);  //I belive this sets the temp sensor check page 247 for more info. Also sets the internal 1.1V reference.
+	ADCSRA = (1<<ADEN);  //enable the ADC
+}
+
+unsigned int ADC_Start_Conv(void)
+{
+	unsigned int data;  //Might need to change this.
+	ADCSRA = (1<<ADSC);  //Starts the conversion
+	while (ADCSRA & (1<<ADSC) == 1);  //Wait for the conversion to finish
+	data = (ADCH<<8)| ADCL;  //Grab the data from the two registers.
+	return data;
 }
