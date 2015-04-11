@@ -47,9 +47,8 @@ void TEMP_Init( void )
 	ADCSRA = (1<<ADEN);  //enable the ADC
 }
 
-unsigned int ADC_Start_Conv(void)
+void ADC_Start_Conv(unsigned char data)
 {
-	unsigned int data;  //Might need to change this.
 	ADCSRA = (1<<ADSC);  //Starts the conversion
 	while (ADCSRA & (1<<ADSC) == 1);  //Wait for the conversion to finish
 	data = (ADCH<<8)| ADCL;  //Grab the data from the two registers.
