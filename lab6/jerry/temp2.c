@@ -64,11 +64,16 @@ void init_ADC(void)
 
 int read_ADC(void)
 {
+	int retval = 0;
+
 	// Start conversion
 	ADCSRA |= (1<<ADSC);
 
 	// Wait until conversion is finished
 	while (!(ADCSRA & (1<<ADIF)));
 
-	return ADCL | (ADCH<<8);
+	retval = ADCL;
+	retval |= ADCH<<8;
+
+	return retval;
 }
