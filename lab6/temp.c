@@ -1,18 +1,20 @@
+#define F_CPU 1000000UL
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
 #include <util/delay.h>
-#define F_CPU 1843200// Clock Speed
+//#define FOSC 1843200// Clock Speed
 #define BAUD 9600
-#define MYUBRR F_CPU/16/BAUD-1
-
-void UART_Init( unsigned int );
+#define MYUBRR FOSC/16/BAUD-1
+#include <util/setbaud.h>
+void UART_Init( void );
 unsigned char ADC_Start_Conv(void);
 void USART_Transmit(unsigned char);
+//FILE usart0_str = FDEV_SETUP_STREAM(USART_Transmit, NULL, _FDEV_SETUP_RW);
 void main( void )
 {
 	unsigned char data;
-	USART_Init( MYUBRR );
+	USART_Init();
 	TEMP_Init();
 	while(1){
 	data = ADC_Start_Conv();
@@ -22,19 +24,20 @@ void main( void )
 }
 
 
-void USART_Init( unsigned int ubrr) //got this from the ATMEGA data sheet page 176
+void USART_Init(void) //got this from the ATMEGA data sheet page 176
 {
 /* Set baud rate */
-	UBRR0H = (unsigned char)(ubrr>>8);
-	UBRR0L = (unsigned char)ubrr;
+	UBRR0H = UBRRH_VALUE;
+	UBRR0L = UBRRL_VALUE;
 /* Enable receiver and transmitter */
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0);
 /* Set frame format: 8data, 2stop bit */
-	UCSR0C = (1<<USBS0)|(3<<UCSZ00);  //(1<<URSEL)|(1<<USBS)|(3<<UCSZ0);
+	UCSR0C = (3<<UCSZ00);  //(1<<URSEL)|(1<<USBS)|(3<<UCSZ0);
 }
 
 void USART_Transmit( unsigned char data )  //may or may not need this
-{
+{	
+	data = 'a';
 /* Wait for empty transmit buffer */
 	while ( !( UCSR0A & (1<<UDRE0)) );
 /* Put data into buffer, sends the data */

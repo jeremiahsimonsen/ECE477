@@ -27,8 +27,8 @@ int main(void)
 
 	while (1) {
 		temp = read_ADC();
-		fprintf(fp, "%d\n", temp);
-		_delay_ms(1000);
+		fprintf(fp, "%d\n\r", temp);
+		_delay_ms(100);
 	}
 
 	return 0;
@@ -58,7 +58,7 @@ int serial_putchar(char val, FILE * fp)
 
 void init_ADC(void)
 {
-	ADMUX = (1<<REFS0) | (1<<MUX3);  //I belive this sets the temp sensor check page 247 for more info. Also sets the internal 1.1V reference.
+	ADMUX = (3<<REFS0) | (1<<MUX3);  //I belive this sets the temp sensor check page 247 for more info. Also sets the internal 1.1V reference.
 	ADCSRA = (1<<ADEN) | (1<<ADIE);  //enable the ADC
 } 
 
@@ -70,7 +70,7 @@ int read_ADC(void)
 	ADCSRA |= (1<<ADSC);
 
 	// Wait until conversion is finished
-	while (!(ADCSRA & (1<<ADIF)));
+	while (!(ADCSRA & (1<<ADSC)));
 
 	retval = ADCL;
 	retval |= ADCH<<8;
