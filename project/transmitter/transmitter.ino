@@ -27,7 +27,6 @@
 //   1023,507,11111	joystick right
 //
 // Author: Jeremiah Simonsen and Scott Edgerly
-// Created on April 27, 2015
 
 // Define button pin numbers
 #define BUTTON_SEL 2    // Joystick "select" button

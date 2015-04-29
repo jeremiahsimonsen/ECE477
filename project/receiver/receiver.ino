@@ -17,7 +17,6 @@
 // Automatic firing of the laser may be added in a later version.
 //
 // Author: Jeremiah Simonsen and Scott Edgerly
-// Created on April 28, 2015
 
 // Define the laser control pin number
 #define LASER 13
