@@ -28,7 +28,7 @@
 #define BUTTON_UNPRESSED 1
 
 // Deadband on the vertical axis to try to get rid of shaking
-#define STICK_V_DEADBAND 20
+#define DEADBAND 20
 
 // Libraries for interfacing with the Pixy camera
 #include <SPI.h>
@@ -37,6 +37,9 @@
 // Define the camera center in pixels
 #define X_CENTER        160L
 #define Y_CENTER        100L
+
+// Define the joystick velocity scalar
+#define JOYSTICK_VEL_SCALE 1
 
 // // Define the extreme servo positions
 // #define SERVO_MIN_POS   0L
@@ -163,7 +166,7 @@ void setup() {
 	
 	// Start the serial port that is connected to the XBee with 9600 baud
 	Serial1.begin(9600);
-//  Serial.begin(9600);
+ 	Serial.begin(9600);
 	
 	pan = initServoControl(350, 600);
 	tilt = initServoControl(500,700);
@@ -217,28 +220,38 @@ void loop() {
 		// Handle out of bounds positions
 		if (x > SERVO_MAX_POS) {
 			x = SERVO_MAX_POS;
+		} else if ( (x > 512 - DEADBAND) && (x < 512 + DEADBAND)) {
+			x = SERVO_CENTER_POS;
 		} else if (x < SERVO_MIN_POS) {
 			x = SERVO_MIN_POS;
 		}
 		
 		if (y > SERVO_MAX_POS) {
 			y = SERVO_MAX_POS;
-		} else if ( (y > 512 - STICK_V_DEADBAND) && (y < 512 + STICK_V_DEADBAND) ) {
+		} else if ( (y > 512 - DEADBAND) && (y < 512 + DEADBAND) ) {
 			y = SERVO_CENTER_POS;
 		} else if (y < SERVO_MIN_POS) {
 			y = SERVO_MIN_POS;
 		}
 		
+		// Convert joystick position to a velocity between +/- 1.0
+		float dx = ((float)x / (float)SERVO_CENTER_POS) - 1.0;
+		float dy = ((float)y / (float)SERVO_CENTER_POS) - 1.0;
+		dx *= JOYSTICK_VEL_SCALE;
+		dy *= JOYSTICK_VEL_SCALE;
+
 		// Serial verification
-//    char buf[32];
-//    sprintf(buf, "x = %d, y = %d",x,y);
-//    Serial.println(buf);
+		char buf[32];
+		sprintf(buf, "dx = %f, dy = %f",dx,dy);
+		Serial.println(buf);
 
 		// Update the servo positions
 		pixy.getBlocks();     // For whatever reason, this is necessary before setServos()
-		pixy.setServos(x, y); // Set the new servo positions
-//    pan.pos = x;        // Doesn't seem needed - was intended to update the position
-//    tilt.pos = y;       // variables in the controller objects for error correction
+		// pixy.setServos(x, y); // Set the new servo positions
+		pan->pos += dx;
+		tilt->pos += dy;
+		dx = dy = 0.0;
+		pixy.setServos(pan->pos, tilt->pos);
 	}
 }
 
