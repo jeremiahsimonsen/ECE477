@@ -26,10 +26,78 @@
 #define BUTTON_PRESSED 0
 #define BUTTON_UNPRESSED 1
 
+// Libraries for interfacing with the Pixy camera
+#include <SPI.h>
+#include <Pixy.h>
+
+// Define the camera center in pixels
+#define X_CENTER        160L
+#define Y_CENTER        100L
+
+// Define the extreme servo positions
+#define SERVO_MIN_POS   0L
+#define SERVO_MAX_POS   1000L
+// Define the servo center position
+#define SERVO_CENTER_POS ((SERVO_MAX_POS - SERVO_MIN_POS)/2)
+
+// Define a PD servo controller class
+class ServoControl
+{
+public:
+  // Constructor that takes proportional and derivative gains
+  ServoControl(int kp, int kd);
+  
+  // Member function that will update the position based on the error
+  void update(int error);
+  
+  // Controller variables
+  int pos;          // servo position
+  int prevError;    // the previous error
+  int kp;           // proportional gain
+  int kd;           // derivative gain
+};
+
+// PD servo controller constructor
+ServoControl::ServoControl(int p, int d) {
+  pos = SERVO_CENTER_POS;    // the servo will start in the center
+  kp = p;                    // store the gain variables
+  kd = d;
+  prevError = 0x80000000L;
+}
+
+// Function to update the servo position based on the error
+void ServoControl::update(int error) {
+  long int vel;        // velocity term
+  
+  // If there is error
+  if (prevError != 0x80000000) {
+    vel = (error*kp + (error - prevError)*kd)>>10;    // calculate the velocity
+    pos += vel;                                       // update position
+
+    // Handle positions out of bounds
+    if (pos > SERVO_MAX_POS) {
+      pos = SERVO_MAX_POS;
+    } else if (pos < SERVO_MIN_POS) {
+      pos = SERVO_MIN_POS;
+    }
+  }
+  // Update the error term
+  prevError = error;
+}
+
+// Initialize pan and tilt PD servo controllers
+ServoControl pan(350, 600);
+ServoControl tilt(500, 700);
+
+// For communicating with the Pixy camera
+Pixy pixy;
+
+// XBee input buffer and command string
 String buff, cmd;
 char c;
 int bytesAvailable = 0;
-int x, y;
+// Controller state variables
+int32_t x, y;
 int button_sel, button_d3, button_d4, button_d5, button_d6;
 
 void setup() {
@@ -42,6 +110,9 @@ void setup() {
   // Start the serial port that is connected to the XBee with 9600 baud
   Serial1.begin(9600);
   Serial.begin(9600);
+  
+  // Initialize the pixy cam
+  pixy.init();
 }
 
 void loop() {
@@ -74,28 +145,71 @@ void loop() {
   button_d6 = cmd[comma2+5] - '0';
 
   // Print everything to the USB port for verification
-  Serial.print("x = ");
-  Serial.println(x);
-  Serial.print("y = ");
-  Serial.println(y);
-  Serial.print("Select Button = ");
-  Serial.println(button_sel);
-  Serial.print("Button D3 = ");
-  Serial.println(button_d3);
-  Serial.print("Button D4 = ");
-  Serial.println(button_d4);
-  Serial.print("Button D5 = ");
-  Serial.println(button_d5);
-  Serial.print("Button D6 = ");
-  Serial.println(button_d6);
+//  Serial.print("x = ");
+//  Serial.println(x);
+//  Serial.print("y = ");
+//  Serial.println(y);
+//  Serial.print("Select Button = ");
+//  Serial.println(button_sel);
+//  Serial.print("Button D3 = ");
+//  Serial.println(button_d3);
+//  Serial.print("Button D4 = ");
+//  Serial.println(button_d4);
+//  Serial.print("Button D5 = ");
+//  Serial.println(button_d5);
+//  Serial.print("Button D6 = ");
+//  Serial.println(button_d6);
   
   // Control the laser
-  if (button_d5 == BUTTON_PRESSED) {
-    digitalWrite(LASER, HIGH);
-    Serial.println("FIRING LASER");
-  } else {
-    digitalWrite(LASER, LOW);
-  }
+//  if (button_d5 == BUTTON_PRESSED) {
+//    digitalWrite(LASER, HIGH);
+//    Serial.println("FIRING LASER");
+//  } else {
+//    digitalWrite(LASER, LOW);
+//  }
+  
+  // Use the Pixy for image based tracking
+//  if (button_d6 == BUTTON_PRESSED) {
+    int blocks;
+//    int panError, tiltError;
+//    
+    blocks = pixy.getBlocks();
+//    
+//    if (blocks) {
+//      panError = X_CENTER - pixy.blocks[0].x;
+//      tiltError = pixy.blocks[0].y - Y_CENTER;
+//      
+//      pan.update(panError);
+//      tilt.update(tiltError);
+//      
+//      pixy.setServos(pan.pos, tilt.pos);
+//    }
+//  } else {
+//    Serial.println("In here");
+//    if (x > SERVO_MAX_POS) {
+//      x = SERVO_MAX_POS;
+//    } else if (x < SERVO_MIN_POS) {
+//      x = SERVO_MIN_POS;
+//    }
+//    
+//    if (y > SERVO_MAX_POS) {
+//      y = SERVO_MAX_POS;
+//    } else if (y < SERVO_MIN_POS) {
+//      y = SERVO_MIN_POS;
+//    }
+    
+//    Serial.print("x = ");
+//    Serial.println(x);
+//    Serial.print("y = ");
+//    Serial.println(y);
+    
+    char buf[50];
+    sprintf(buf, "x = %d, y = %d",x,y);
+    Serial.println(buf);
+    pixy.setServos(x, y);
+//    pan.pos = x;
+//    tilt.pos = y;
+//  }
 }
 
 

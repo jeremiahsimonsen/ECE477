@@ -102,6 +102,8 @@ void loop()
     
     if (i%50==0)
     {
+      sprintf(buf, "pan = %d, tilt = %d",panLoop.m_pos,tiltLoop.m_pos);
+      Serial.println(buf);
       sprintf(buf, "Detected %d:\n", blocks);
       Serial.print(buf);
       for (j=0; j<blocks; j++)
