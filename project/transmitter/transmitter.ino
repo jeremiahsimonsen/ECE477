@@ -59,9 +59,9 @@ void setup() {
 
 // Function that runs continuously and sends the data via the XBee
 void loop() {
-  Serial.print(analogRead(0));            // Send joystick x position
+  Serial.print(1023 - analogRead(0));            // Send joystick x position
   Serial.print(",");
-  Serial.print(analogRead(1));            // Send joystick y position
+  Serial.print(1023 - analogRead(1));            // Send joystick y position
   Serial.print(",");
   Serial.print(digitalRead(BUTTON_SEL));  // Send the select buton state
   Serial.print(digitalRead(BUTTON_D3));   // Send the D3 button state

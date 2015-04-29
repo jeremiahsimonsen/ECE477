@@ -26,6 +26,8 @@
 #define BUTTON_PRESSED 0
 #define BUTTON_UNPRESSED 1
 
+#define STICK_V_DEADBAND 20
+
 // Libraries for interfacing with the Pixy camera
 #include <SPI.h>
 #include <Pixy.h>
@@ -97,7 +99,7 @@ String buff, cmd;
 char c;
 int bytesAvailable = 0;
 // Controller state variables
-int32_t x, y;
+int x, y;
 int button_sel, button_d3, button_d4, button_d5, button_d6;
 
 void setup() {
@@ -109,7 +111,7 @@ void setup() {
   
   // Start the serial port that is connected to the XBee with 9600 baud
   Serial1.begin(9600);
-  Serial.begin(9600);
+//  Serial.begin(9600);
   
   // Initialize the pixy cam
   pixy.init();
@@ -129,9 +131,9 @@ void loop() {
   }
   
   // Send the command string to the USB port for testing purposes
-  if (cmd.length() > 0) {
-    Serial.print(cmd);
-  }
+//  if (cmd.length() > 0) {
+//    Serial.print(cmd);
+//  }
   
   // Parse the command string into usable numbers
   int comma1 = cmd.indexOf(',');
@@ -161,55 +163,62 @@ void loop() {
 //  Serial.println(button_d6);
   
   // Control the laser
-//  if (button_d5 == BUTTON_PRESSED) {
-//    digitalWrite(LASER, HIGH);
+  if (button_d5 == BUTTON_PRESSED) {
+    digitalWrite(LASER, HIGH);
 //    Serial.println("FIRING LASER");
-//  } else {
-//    digitalWrite(LASER, LOW);
-//  }
+  } else {
+    digitalWrite(LASER, LOW);
+  }
   
   // Use the Pixy for image based tracking
-//  if (button_d6 == BUTTON_PRESSED) {
+  if (button_d6 == BUTTON_PRESSED) {
     int blocks;
-//    int panError, tiltError;
-//    
+    int panError, tiltError;
+    
     blocks = pixy.getBlocks();
-//    
-//    if (blocks) {
-//      panError = X_CENTER - pixy.blocks[0].x;
-//      tiltError = pixy.blocks[0].y - Y_CENTER;
-//      
-//      pan.update(panError);
-//      tilt.update(tiltError);
-//      
-//      pixy.setServos(pan.pos, tilt.pos);
-//    }
-//  } else {
-//    Serial.println("In here");
-//    if (x > SERVO_MAX_POS) {
-//      x = SERVO_MAX_POS;
-//    } else if (x < SERVO_MIN_POS) {
-//      x = SERVO_MIN_POS;
-//    }
-//    
-//    if (y > SERVO_MAX_POS) {
-//      y = SERVO_MAX_POS;
-//    } else if (y < SERVO_MIN_POS) {
-//      y = SERVO_MIN_POS;
-//    }
+    
+    if (blocks) {
+      panError = X_CENTER - pixy.blocks[0].x;
+      tiltError = pixy.blocks[0].y - Y_CENTER;
+      
+      pan.update(panError);
+      tilt.update(tiltError);
+      
+      pixy.setServos(pan.pos, tilt.pos);
+    }
+  } 
+  
+  if (button_d3 == BUTTON_PRESSED) {
+
+    if (x > SERVO_MAX_POS) {
+      x = SERVO_MAX_POS;
+    } else if (x < SERVO_MIN_POS) {
+      x = SERVO_MIN_POS;
+    }
+    
+    if (y > SERVO_MAX_POS) {
+      y = SERVO_MAX_POS;
+    } else if ( (y > 512 - STICK_V_DEADBAND) && (y < 512 + STICK_V_DEADBAND) ) {
+      y = SERVO_CENTER_POS;
+    } else if (y < SERVO_MIN_POS) {
+      y = SERVO_MIN_POS;
+    }
     
 //    Serial.print("x = ");
 //    Serial.println(x);
 //    Serial.print("y = ");
 //    Serial.println(y);
     
-    char buf[50];
-    sprintf(buf, "x = %d, y = %d",x,y);
-    Serial.println(buf);
+//    char buf[50];
+//    sprintf(buf, "x = %d, y = %d",x,y);
+//    Serial.println(buf);
+    pixy.getBlocks();
     pixy.setServos(x, y);
 //    pan.pos = x;
 //    tilt.pos = y;
-//  }
+  }
+  
+//  pixy.setServos(pan.pos, tilt.pos);
 }
 
 
