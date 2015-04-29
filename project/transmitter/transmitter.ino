@@ -38,36 +38,36 @@
 // Function to setup the input pins and serial port
 // The serial port is configured for 9600 baud, 8 data bit, 2 stop bit, no parity
 void setup() {
-  // Set all buttons as inputs
-  pinMode(BUTTON_SEL, INPUT);
-  pinMode(BUTTON_D3, INPUT);
-  pinMode(BUTTON_D4, INPUT);
-  pinMode(BUTTON_D5, INPUT);
-  pinMode(BUTTON_D6, INPUT);
-  
-  // Enable pull-up resistors on all the buttons
-  digitalWrite(BUTTON_SEL, HIGH);
-  digitalWrite(BUTTON_D3, HIGH);
-  digitalWrite(BUTTON_D4, HIGH);
-  digitalWrite(BUTTON_D5, HIGH);
-  digitalWrite(BUTTON_D6, HIGH);  
-  
-  // Setup the serial port for the XBee at 9600 baud
-  Serial.begin(9600);
+	// Set all buttons as inputs
+	pinMode(BUTTON_SEL, INPUT);
+	pinMode(BUTTON_D3, INPUT);
+	pinMode(BUTTON_D4, INPUT);
+	pinMode(BUTTON_D5, INPUT);
+	pinMode(BUTTON_D6, INPUT);
+	
+	// Enable pull-up resistors on all the buttons
+	digitalWrite(BUTTON_SEL, HIGH);
+	digitalWrite(BUTTON_D3, HIGH);
+	digitalWrite(BUTTON_D4, HIGH);
+	digitalWrite(BUTTON_D5, HIGH);
+	digitalWrite(BUTTON_D6, HIGH);  
+	
+	// Setup the serial port for the XBee at 9600 baud
+	Serial.begin(9600);
 }
 
 // Function that runs continuously and sends the data via the XBee
 void loop() {
-  Serial.print(1023 - analogRead(0));            // Send joystick x position
-  Serial.print(",");
-  Serial.print(1023 - analogRead(1));            // Send joystick y position
-  Serial.print(",");
-  Serial.print(digitalRead(BUTTON_SEL));  // Send the select buton state
-  Serial.print(digitalRead(BUTTON_D3));   // Send the D3 button state
-  Serial.print(digitalRead(BUTTON_D4));   // Send the D4 button state
-  Serial.print(digitalRead(BUTTON_D5));   // Send the D5 button state
-  Serial.println(digitalRead(BUTTON_D6)); // Send the D6 button state
-  
-  // Wait 100ms
-  delay(100);
+	Serial.print(1023 - analogRead(0));            // Send joystick x position
+	Serial.print(",");
+	Serial.print(1023 - analogRead(1));            // Send joystick y position
+	Serial.print(",");
+	Serial.print(digitalRead(BUTTON_SEL));  // Send the select buton state
+	Serial.print(digitalRead(BUTTON_D3));   // Send the D3 button state
+	Serial.print(digitalRead(BUTTON_D4));   // Send the D4 button state
+	Serial.print(digitalRead(BUTTON_D5));   // Send the D5 button state
+	Serial.println(digitalRead(BUTTON_D6)); // Send the D6 button state
+	
+	// Wait 100ms
+	delay(100);
 }
