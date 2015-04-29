@@ -38,59 +38,64 @@
 #define X_CENTER        160L
 #define Y_CENTER        100L
 
-// Define the extreme servo positions
-#define SERVO_MIN_POS   0L
-#define SERVO_MAX_POS   1000L
-// Define the servo center position
-#define SERVO_CENTER_POS ((SERVO_MAX_POS - SERVO_MIN_POS)/2)
+// // Define the extreme servo positions
+// #define SERVO_MIN_POS   0L
+// #define SERVO_MAX_POS   1000L
+// // Define the servo center position
+// #define SERVO_CENTER_POS ((SERVO_MAX_POS - SERVO_MIN_POS)/2)
+
+#include "ServoControl.h"
 
 // Define a PD servo controller class
-class ServoControl {
-public:
-	// Constructor that takes proportional and derivative gains
-	ServoControl(int kp, int kd);
+// class ServoControl {
+// public:
+// 	// Constructor that takes proportional and derivative gains
+// 	ServoControl(int kp, int kd);
 	
-	// Member function that will update the position based on the error
-	void update(int error);
+// 	// Member function that will update the position based on the error
+// 	void update(int error);
 	
-	// Controller variables
-	int pos;          // servo position
-	int prevError;    // the previous error
-	int kp;           // proportional gain
-	int kd;           // derivative gain
-};
+// 	// Controller variables
+// 	int pos;          // servo position
+// 	int prevError;    // the previous error
+// 	int kp;           // proportional gain
+// 	int kd;           // derivative gain
+// };
 
-// PD servo controller constructor
-ServoControl::ServoControl(int p, int d) {
-	pos = SERVO_CENTER_POS;    // the servo will start in the center
-	kp = p;                    // store the gain variables
-	kd = d;
-	prevError = 0x80000000L;
-}
+// // PD servo controller constructor
+// ServoControl::ServoControl(int p, int d) {
+// 	pos = SERVO_CENTER_POS;    // the servo will start in the center
+// 	kp = p;                    // store the gain variables
+// 	kd = d;
+// 	prevError = 0x80000000L;
+// }
 
-// Function to update the servo position based on the error
-void ServoControl::update(int error) {
-	long int vel;        // velocity term
+// // Function to update the servo position based on the error
+// void ServoControl::update(int error) {
+// 	long int vel;        // velocity term
 	
-	// If there is error
-	if (prevError != 0x80000000) {
-		vel = (error*kp + (error - prevError)*kd)>>10;    // calculate the velocity
-		pos += vel;                                       // update position
+// 	// If there is error
+// 	if (prevError != 0x80000000) {
+// 		vel = (error*kp + (error - prevError)*kd)>>10;    // calculate the velocity
+// 		pos += vel;                                       // update position
 
-		// Handle positions out of bounds
-		if (pos > SERVO_MAX_POS) {
-			pos = SERVO_MAX_POS;
-		} else if (pos < SERVO_MIN_POS) {
-			pos = SERVO_MIN_POS;
-		}
-	}
-	// Update the error term
-	prevError = error;
-}
+// 		// Handle positions out of bounds
+// 		if (pos > SERVO_MAX_POS) {
+// 			pos = SERVO_MAX_POS;
+// 		} else if (pos < SERVO_MIN_POS) {
+// 			pos = SERVO_MIN_POS;
+// 		}
+// 	}
+// 	// Update the error term
+// 	prevError = error;
+// }
 
 // Initialize pan and tilt PD servo controllers
-ServoControl pan(350, 600);
-ServoControl tilt(500, 700);
+// ServoControl pan(350, 600);
+// ServoControl tilt(500, 700);
+ServoControl *pan;
+ServoControl *tilt;
+
 
 // For communicating with the Pixy camera
 Pixy pixy;
@@ -160,6 +165,9 @@ void setup() {
 	Serial1.begin(9600);
 //  Serial.begin(9600);
 	
+	pan = initServoControl(350, 600);
+	tilt = initServoControl(500,700);
+
 	// Initialize the pixy cam
 	pixy.init();
 }
@@ -194,11 +202,13 @@ void loop() {
 			tiltError = pixy.blocks[0].y - Y_CENTER;
 			
 			// Update the controller object error terms
-			pan.update(panError);
-			tilt.update(tiltError);
+			// pan.update(panError);
+			// tilt.update(tiltError);
+			updateServoControl(pan, panError);
+			updateServoControl(tilt, tiltError);
 			
 			// Set the new servo positions
-			pixy.setServos(pan.pos, tilt.pos);
+			pixy.setServos(pan->pos, tilt->pos);
 		}
 	} 
 	
