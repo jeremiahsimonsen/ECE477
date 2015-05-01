@@ -1,7 +1,7 @@
 CC=avr-gcc
-CFLAGS=-g -Os -Wall -mcall-prologues -mmcu=atmega88 -Wl,--section-start=.text=0x1800
+CFLAGS= -Wl,--section-start=.text=0x1800 -g -O0 -Wall -mcall-prologues -mmcu=atmega88
 OBJ2HEX=avr-objcopy
-#UISP=/usr/local/bin/uisp
+UISP=/usr/local/bin/uisp
 TARGET=lab7
 #ADFLAGS=-p m8 -c FT232 -P /dev/tty.usbserial-A8003POq 
 ADFLAGS=-p m88 -c FT232 -P /dev/ttyUSB0
@@ -39,7 +39,7 @@ clean:
 
 fuses: 
 # program the fuses (NOT done by regular make)
-	avrdude $(ADFLAGS) -U lfuse:w:0x62:m -U hfuse:w:0xdf:m -U efuse:w:0x00:m -F -u
+	avrdude $(ADFLAGS) -U lfuse:w:0x62:m -U hfuse:w:0xdf:m -U efuse:w:0x00:m
 	#www.engbedded.com/fusecalc
 
 term:
