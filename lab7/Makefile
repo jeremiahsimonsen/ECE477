@@ -13,7 +13,7 @@ ADFLAGS=-p m88 -c FT232 -P /dev/ttyUSB0
 
 prog: $(TARGET).hex $(TARGET).eeprom  
 #this programs the chip, depends on Target.hex and Target.eeprom
-	avrdude $(ADFLAGS) -V -U flash:w:$(TARGET).hex:i
+	avrdude $(ADFLAGS) -V -U flash:w:$(TARGET).hex:i -F
 	# avrdude $(ADFLAGS) -U eeprom:w:$(TARGET).eeprom:i
 
 %.obj: %.o   
@@ -30,16 +30,17 @@ prog: $(TARGET).hex $(TARGET).eeprom
 # any eeprom depends on same .obj
 	$(OBJ2HEX) -j .eeprop -O ihex $< $@ 
 
-erase:   
-# this target will just erase avr
-	avrdude $(ADFLAGS) -e
+# erase:   
+# # this target will just erase avr
+# 	avrdude $(ADFLAGS) -e
+
 clean:  
 # this target will remove all non-source files (will cause a complete re-build on next make)
 	rm -f *.hex *.obj *.o
 
 fuses: 
 # program the fuses (NOT done by regular make)
-	avrdude $(ADFLAGS) -U lfuse:w:0x62:m -U hfuse:w:0xdf:m -U efuse:w:0x00:m
+	avrdude $(ADFLAGS) -U lfuse:w:0x62:m -U hfuse:w:0xdf:m -U efuse:w:0xf8:m
 	#www.engbedded.com/fusecalc
 
 term:

@@ -3,7 +3,7 @@
 #include <avr/pgmspace.h>
 #include <avr/boot.h>
 
-void main(void) {
+int main(void) {
 	uint16_t buf;
 	int i, address = 0;
 
@@ -28,7 +28,7 @@ void main(void) {
 		for (i = 0; i < SPM_PAGESIZE; i += 2) {
 			// Set up little-endian word
 			buf = (i/2)<<8;		// high byte
-			buf |= (((i/2) + address/SPM_PAGESIZE) / 32));	// low byte
+			buf |= (((i/2) + address/SPM_PAGESIZE) / 32);	// low byte
 		}
 	}
 
