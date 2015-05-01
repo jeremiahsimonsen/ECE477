@@ -1,28 +1,16 @@
-////////////////////////////////////////////////////////////////////////////
-// ServoControl function definitions
-//
-// This file contains the definitions of the functions that operate on
-// ServoControl structs. There is an initializer function and an update
-// function that accounts for the error.
-//
-// Author: Jeremiah Simonsen and Scott Edgerly
-////////////////////////////////////////////////////////////////////////////
-
 #include "ServoControl.h"
 
 // Function to initialize a ServoControl
 ServoControl* initServoControl(int p, int d) {
-	// Allocate memory
 	ServoControl *c = (ServoControl *)malloc(sizeof(ServoControl));
-	c->pos = SERVO_CENTER_POS;		// starting position is the center
-	c->kp = p;						// store the input gains
+	c->pos = SERVO_CENTER_POS;
+	c->kp = p;
 	c->kd = d;
-	c->prevError = 0x80000000L;		// starting previous error (none)
+	c->prevError = 0x80000000L;
 
 	return c;
 }
 
-// Function to update the position and error terms of a ServoControl
 void updateServoControl(ServoControl *c, int error) {
 	long int vel;        // velocity term
 	

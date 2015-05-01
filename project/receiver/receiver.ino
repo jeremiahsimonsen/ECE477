@@ -23,13 +23,6 @@
 // Define the laser control pin number
 #define LASER 13
 
-// Define button states
-#define BUTTON_PRESSED 0
-#define BUTTON_UNPRESSED 1
-
-// Deadband on the vertical axis to try to get rid of shaking
-#define DEADBAND 20
-
 // Libraries for interfacing with the Pixy camera
 #include <SPI.h>
 #include <Pixy.h>
@@ -38,123 +31,20 @@
 #define X_CENTER        160L
 #define Y_CENTER        100L
 
-// Define the joystick velocity scalar
-#define JOYSTICK_VEL_SCALE 1
-
-// // Define the extreme servo positions
-// #define SERVO_MIN_POS   0L
-// #define SERVO_MAX_POS   1000L
-// // Define the servo center position
-// #define SERVO_CENTER_POS ((SERVO_MAX_POS - SERVO_MIN_POS)/2)
-
 #include "ServoControl.h"
-
-// Define a PD servo controller class
-// class ServoControl {
-// public:
-// 	// Constructor that takes proportional and derivative gains
-// 	ServoControl(int kp, int kd);
-	
-// 	// Member function that will update the position based on the error
-// 	void update(int error);
-	
-// 	// Controller variables
-// 	int pos;          // servo position
-// 	int prevError;    // the previous error
-// 	int kp;           // proportional gain
-// 	int kd;           // derivative gain
-// };
-
-// // PD servo controller constructor
-// ServoControl::ServoControl(int p, int d) {
-// 	pos = SERVO_CENTER_POS;    // the servo will start in the center
-// 	kp = p;                    // store the gain variables
-// 	kd = d;
-// 	prevError = 0x80000000L;
-// }
-
-// // Function to update the servo position based on the error
-// void ServoControl::update(int error) {
-// 	long int vel;        // velocity term
-	
-// 	// If there is error
-// 	if (prevError != 0x80000000) {
-// 		vel = (error*kp + (error - prevError)*kd)>>10;    // calculate the velocity
-// 		pos += vel;                                       // update position
-
-// 		// Handle positions out of bounds
-// 		if (pos > SERVO_MAX_POS) {
-// 			pos = SERVO_MAX_POS;
-// 		} else if (pos < SERVO_MIN_POS) {
-// 			pos = SERVO_MIN_POS;
-// 		}
-// 	}
-// 	// Update the error term
-// 	prevError = error;
-// }
+#include "joystick.h"
 
 // Initialize pan and tilt PD servo controllers
-// ServoControl pan(350, 600);
-// ServoControl tilt(500, 700);
 ServoControl *pan;
 ServoControl *tilt;
-
 
 // For communicating with the Pixy camera
 Pixy pixy;
 
 // XBee input buffer and command string
-String buff, cmd;
-char c;
+String cmd;
 int bytesAvailable = 0;
-// Controller state variables
-int x, y;
-int button_sel, button_d3, button_d4, button_d5, button_d6;
-
-// Function to fetch the command string from the XBee
-void fetchCMD() {
-	// Read a command string from the XBee
-	while (Serial1.available()) {// Byte available on the serial port
-		c = Serial1.read();        // Read a byte
-		buff += c;                 // Append to the buffer string
-		
-		// If we have reached a newline
-		if (c == '\n') {
-			cmd = buff;              // Copy to command string
-			buff = "";               // Empty the buffer string
-		}
-	}
-	
-	// Send the command string to the USB port for testing purposes
-//  if (cmd.length() > 0) {
-//    Serial.print(cmd);
-//  }
-}
-
-// Function to parse the command string to usable numbers
-void parseCMD() {
-	// Parse the command string into usable numbers
-	int comma1 = cmd.indexOf(',');
-	int comma2 = cmd.indexOf(',', comma1+1);
-	x = cmd.substring(0, comma1).toInt();
-	y = cmd.substring(comma1+1, comma2).toInt();
-	button_sel = cmd[comma2+1] - '0';
-	button_d3 = cmd[comma2+2] - '0';
-	button_d4 = cmd[comma2+3] - '0';
-	button_d5 = cmd[comma2+4] - '0';
-	button_d6 = cmd[comma2+5] - '0';
-
-	// Print everything to the USB port for verification
-//  char buf[40];
-//  sprintf(buf, "x = %d, y = %d\n",x,y);
-//  Serial.print(buf);
-//  sprintf(buf, "Select Button = %d\nButton D3 = %d\n",button_sel,button_d3);
-//  Serial.print(buf);
-//  sprintf(buf, "Button D4 = %d\nButtonD5 = %d\n",button_d4,button_d5);
-//  Serial.print(buf);
-//  sprintf(buf, "Button D6 = %d\n",button_d6);
-//  Serial.print(buf);
-}
+joystick j;
 
 // Function to configure pins and ports
 void setup() {
@@ -178,13 +68,14 @@ void setup() {
 // Function executed continuously that controls the turret
 void loop() {
 	// Fetch commands from the XBee
-	fetchCMD();
+	// fetchCMD();
+	cmd = fetchCMD();
 	
 	// Parse commands into usable numbers
-	parseCMD();
+	parseCMD(&j, cmd);
 	
 	// Control the laser
-	if (button_d5 == BUTTON_PRESSED) {    // If the fire button is pressed
+	if (j.d5 == BUTTON_PRESSED) {    // If the fire button is pressed
 		digitalWrite(LASER, HIGH);          // Turn laser on
 //    Serial.println("FIRING LASER");   // Verification over serial
 	} else {                              // Fire button not pressed
@@ -192,7 +83,7 @@ void loop() {
 	}
 	
 	// Use the Pixy for image based tracking
-	if (button_d6 == BUTTON_PRESSED) {    // If the Pixy control button is pressed
+	if (j.d6 == BUTTON_PRESSED) {    // If the Pixy control button is pressed
 		int blocks;                         // number of detected objects matching a signature
 		int panError, tiltError;            // Error terms for servo controllers
 		
@@ -205,8 +96,6 @@ void loop() {
 			tiltError = pixy.blocks[0].y - Y_CENTER;
 			
 			// Update the controller object error terms
-			// pan.update(panError);
-			// tilt.update(tiltError);
 			updateServoControl(pan, panError);
 			updateServoControl(tilt, tiltError);
 			
@@ -216,27 +105,35 @@ void loop() {
 	} 
 	
 	// Manual joystick control
-	if (button_d3 == BUTTON_PRESSED) {    // If the manual control button is pressed
-		// Handle out of bounds positions
-		if (x > SERVO_MAX_POS) {
-			x = SERVO_MAX_POS;
-		} else if ( (x > 512 - DEADBAND) && (x < 512 + DEADBAND)) {
-			x = SERVO_CENTER_POS;
-		} else if (x < SERVO_MIN_POS) {
-			x = SERVO_MIN_POS;
+	if (j.d3 == BUTTON_PRESSED) {    // If the manual control button is pressed
+		// Handle out of bounds positions and implement a deadband
+		// Negative positions make no sense and the servo cannot rotate beyond
+		// a maximum position. A deadband is used to eliminate shakiness when 
+		// the joystick is centered.
+
+		// Do it for the joystick x axis
+		if (j.x > SERVO_MAX_POS) {
+			j.x = SERVO_MAX_POS;
+		} else if ( (j.x > 512 - DEADBAND) && (j.x < 512 + DEADBAND)) {
+			j.x = SERVO_CENTER_POS;
+		} else if (j.x < SERVO_MIN_POS) {
+			j.x = SERVO_MIN_POS;
 		}
 		
-		if (y > SERVO_MAX_POS) {
-			y = SERVO_MAX_POS;
-		} else if ( (y > 512 - DEADBAND) && (y < 512 + DEADBAND) ) {
-			y = SERVO_CENTER_POS;
-		} else if (y < SERVO_MIN_POS) {
-			y = SERVO_MIN_POS;
+		// And the y axis
+		if (j.y > SERVO_MAX_POS) {
+			j.y = SERVO_MAX_POS;
+		} else if ( (j.y > 512 - DEADBAND) && (j.y < 512 + DEADBAND) ) {
+			j.y = SERVO_CENTER_POS;
+		} else if (j.y < SERVO_MIN_POS) {
+			j.y = SERVO_MIN_POS;
 		}
 		
-		// Convert joystick position to a velocity between +/- 1.0
-		float dx = ((float)x / (float)SERVO_CENTER_POS) - 1.0;
-		float dy = ((float)y / (float)SERVO_CENTER_POS) - 1.0;
+		// Convert joystick position to a "velocity" between +/- 1.0
+		float dx = ((float)j.x / (float)SERVO_CENTER_POS) - 1.0;
+		float dy = ((float)j.y / (float)SERVO_CENTER_POS) - 1.0;
+
+		// Scale the values so the speed is adjustable
 		dx *= JOYSTICK_VEL_SCALE;
 		dy *= JOYSTICK_VEL_SCALE;
 
@@ -246,12 +143,11 @@ void loop() {
 		Serial.println(buf);
 
 		// Update the servo positions
-		pixy.getBlocks();     // For whatever reason, this is necessary before setServos()
-		// pixy.setServos(x, y); // Set the new servo positions
-		pan->pos += dx;
+		pixy.getBlocks();		// For whatever reason, this is necessary before setServos()
+		pan->pos += dx;			// Update the positions stored in the controllers
 		tilt->pos += dy;
-		dx = dy = 0.0;
-		pixy.setServos(pan->pos, tilt->pos);
+		dx = dy = 0.0;			// Zero the velocity terms just in case
+		pixy.setServos(pan->pos, tilt->pos);	// Send servo positions
 	}
 }
 

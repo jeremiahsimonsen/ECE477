@@ -1,3 +1,4 @@
+////////////////////////////////////////////////////////////////////////////
 // Transmitter program
 //
 // This program will run on the Arduino Uno as the "transmitter"/
@@ -27,6 +28,7 @@
 //   1023,507,11111	joystick right
 //
 // Author: Jeremiah Simonsen and Scott Edgerly
+////////////////////////////////////////////////////////////////////////////
 
 // Define button pin numbers
 #define BUTTON_SEL 2    // Joystick "select" button
