@@ -1,5 +1,6 @@
 CC=avr-gcc
-CFLAGS= -Wl,--section-start=.text=0x1800 -g -O0 -Wall -mcall-prologues -mmcu=atmega88
+# should either be .text=0x1800 or 0x7000
+CFLAGS= -Wl,--section-start=.text=0x7000 -g -O0 -Wall -mcall-prologues -mmcu=atmega88
 OBJ2HEX=avr-objcopy
 UISP=/usr/local/bin/uisp
 TARGET=lab7
